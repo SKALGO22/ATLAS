@@ -1,0 +1,442 @@
+\documentclass[a4paper,12pt]{article}
+
+% ------------------ Packages ------------------ 
+\usepackage{graphicx, changepage}   % For including images
+\usepackage{amsmath}    % For math symbols and equations
+\usepackage{amsthm}
+\usepackage{amssymb}    % More math symbols
+\usepackage{hyperref}   % Clickable references
+\usepackage{xcolor}     % Custom colors for code
+\usepackage[dvipsnames]{xcolor} % More colors
+\usepackage{listings}   % Code formatting
+\usepackage{caption}    % Better figure captions
+\usepackage{subcaption} % For subfigures
+\usepackage{geometry}   % Adjust margins
+\geometry{left=1in, right=1in, top=1in, bottom=1in}
+
+% ------------------ Hyperlink Setup ------------------ 
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Precog Task 1 - Graph Exploration},
+    pdfpagemode=FullScreen,
+}
+
+% ------------------ Code Formatting ------------------ 
+\lstset{
+    language=Python,                     % Language for syntax highlighting
+    basicstyle=\ttfamily\footnotesize,   % Font style for code
+    keywordstyle=\color{blue},           % Keywords in blue
+    stringstyle=\color{red},             % Strings in red
+    commentstyle=\color{gray},           % Comments in gray
+    backgroundcolor=\color{lightgray!10}, % Light gray background
+    frame=single,                         % Box around code
+    numbers=left,                         % Line numbers on the left
+    numberstyle=\tiny\color{gray},        % Line number style
+    breaklines=true,                      % Auto line breaking
+    tabsize=4
+}
+
+% ------------------ Title Page ------------------ 
+\title{ATLAS Graph: Programming Task Report}
+\author{Sushant Kumar (2024121004) \\ IIIT Hyderabad}
+\date{\today}
+
+% ------------------ Document Begins ------------------ 
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ------------------ Abstract ------------------ 
+\begin{abstract}
+This report presents the analysis of the ATLAS Graph game as part of the Precog programming task. The objective was to construct, explore, and analyze graph-based properties and infer qualitative implications while identifying strategies to optimize player performance. Various graph-theoretic structures and properties were utilized to investigate effective moves.
+\end{abstract}
+
+% ------------------ 1. Introduction ------------------ 
+\section{Introduction}
+\textbf{Attempted:} Dataset Collection, Task 1, Task 2 completed in full. The bonus task was left due to time constraints.\\\\
+Graph theory plays a crucial role in the analysis of complex networks. Two tasks were performed. The first task involves exploring a directed graph where nodes represent countries or cities, and edges correspond to country name transitions in the ATLAS game. Our goal was to:
+\begin{itemize}
+    \item Construct the ATLAS graph based on the country names.
+    \item Compute key graph properties such as degree distribution, centrality measures, and shortest paths.
+    \item Implement game strategies to determine optimal moves.
+    \item Simulate and analyze results over multiple game instances.
+\end{itemize}
+
+% ------------------ 2. Dataset Collection ------------------ 
+\section{Dataset Collection}
+
+\subsection{Sources}
+\textbf{Countries:} This \href{https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)}{wikipedia page} consisting of a list of officially recognized countries was used. By "officially recognized" we mean that it is a member of the United Nations (like India) or has an observer status (like Palestine). We scraped the data (using \texttt{countries.py} program) from that page instead of the official UN website so that the names of the countries match with the common lingo like we don't want to be saying "Republic of India" instead of "India" while playing ATLAS.\\\\
+\textbf{Cities:} No new, reliable, or complete data was available for the world's 500 most \textit{densely} populated cities. We instead used this \href{https://worldpopulationreview.com/cities}{world population review page} to download the data for the 500 most populated cities in the world (after getting permission from the task in charge).
+
+\subsection{Graph Construction and Visualization} The nodes correspond to the country (or city) names and there is a directed edge from \(X\) to \(Y\) if the last letter of \(X\) is the same as the first letter of \(Y\).\\
+The directed graph for countries with 195 nodes and 2033 arcs was constructed using Python's \textbf{NetworkX} library. We used the \textbf{spring\_layout} function for visualization as the graph was large and dense. We controlled the spacing and randomness by appropriately tuning k, iteration, and seed. We distributed our nodes over a coloring gradient based on degree centrality. The nodes with higher centrality appear darker. This was done for better visualization and to point out well-connected nodes as would be significant later in our analysis.
+Figure~\ref{fig:country_graph} illustrates the countries' ATLAS graph.
+
+\begin{figure}[h!]
+    \noindent
+    \makebox[\textwidth][c]{\includegraphics[width=\paperwidth]{Precog Tasks Report/countries3.png}}
+    \captionsetup{justification=centering, singlelinecheck=false}
+    \caption{Countries ATLAS graph (check GitHub repository for the image file)}
+    \label{fig:country_graph}
+\end{figure}
+
+The directed graph for cities with 498 nodes and 9201 arcs was constructed in the same manner as the countries graph (498 instead of 500 because there's another Hyderabad in Pakistan and two Suzhou-named cities in China)
+Figure~\ref{fig:city_graph} illustrates the cities' ATLAS graph.
+
+\begin{figure}[h!]
+    \noindent
+    \makebox[\textwidth][c]{\includegraphics[width=\paperwidth]{Precog Tasks Report/cities2.png}}
+    \captionsetup{justification=centering, singlelinecheck=false}
+    \caption{Cities ATLAS graph (check GitHub repository for the image file)}
+    \label{fig:city_graph}
+\end{figure}
+
+The directed graph for cities and countries combined was created with 692 nodes and 20410 edges with a similar methodology. 
+Figure~\ref{fig:combined_graph} illustrates the combined ATLAS graph.
+
+\begin{figure}[h!]
+    \noindent
+    \makebox[\textwidth][c]{\includegraphics[width=\paperwidth]{Precog Tasks Report/combined1.png}}
+    \captionsetup{justification=centering, singlelinecheck=false}
+    \caption{Combined ATLAS graph (check GitHub repository for the image file)}
+    \label{fig:combined_graph}
+\end{figure}
+
+\newpage
+% ------------------ 3. Graph Properties ------------------ 
+\section{Task 1 - Graph Analysis}
+This section documents the data exploration process for the three graphs: countries, cities, and combined. Our analysis revolves around the central problem of finding strategies to win the ATLAS game in a two-player scenario. Inferences relevant to this goal were made and have been documented. Qualitative and quantitative measures have been used to support the findings. Some other insights not directly related to the problem have also been listed. The tools and structures utilized are fundamentally graph-theoretic.
+
+\subsection{Assumptions and Conventions}
+\begin{itemize}
+    \item The ATLAS game begins with a place starting with the letter \(A\). This assumption has been made to ease the game simulation process and to be consistent with how the game is played in practice.
+    \item The player who starts the game, that is, guesses the first place name is designated as \textit{Player 1} and the opponent as \textit{Player 2}. Further, \textit{Player i} and \textit{Player j} have been used while performing analysis agnostic to game initialization.
+    \item A player cannot say the same name twice even if it belongs to two different places. For example, \(Hyderabad\) can be said only once even if it can refer to cities in two different countries.
+\end{itemize}
+
+\subsection{First steps: Analyzing simple networks}
+Unlike some other abstract structures like vector spaces, graphs can be built inductively by adding nodes and edges to a smaller graph. Instead of directly attacking the problem on the given graph, we take a look at the simple networks to mathematically formulate the \(winning\) \(criteria\). 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Precog Tasks Report/simple_networks.png}
+    \caption{Blue corresponds to Player 1 and red to Player 2}
+    \label{fig:simple}
+\end{figure}
+\newpage
+Consider the graph as obtained by the traversal of Player 1 and Player 2 from some starting node to the node at which the ATLAS game decisively ends. Let's call this graph a \(run\).\\
+\textbf{Observation 1:} Every \(run\) is a simple path as any node is not allowed to repeat. If the path length (number of nodes) is odd then Player 1 wins else Player 2 wins. Further, the path should be maximal concerning the final node.\\\\
+\textbf{Observation 2:} A \(run\) terminates at either (1) dead-end, i.e., a node with out-degree equal to zero, or (2) node that ONLY has out-edges looping back into the traversal.\\\\
+We thus identify 2 defining elements of winning criteria - \(run\) length parity and termination condition. This motivates us to investigate our graphs for these two types of terminal nodes and the paths leading to them.
+
+\subsection{Finding Paths: What worked and what didn't...}
+\subsubsection{A reasoning thread}
+Say we are \textit{Player i} and want to defeat \textit{Player j}\\\\
+\textbf{Q: }What will finding terminal nodes accomplish?\\
+\textbf{A: }It will give us an idea of where to lead the traversal. If we jump into a dead-end then there's no coming back for \textit{Player j}. (S)he's out.\\\\
+\textbf{Q: }You are at the initial state of the game with zero, one or two moves played. Assume you know all the dead-ends. How exactly would you "lead the traversal" to \textit{j's} demise?\\
+\textbf{A: }So there are multiple things to consider here...there can be many dead-ends and our preference for them can change dynamically depending on how \textit{Player j} moves. We can find all odd-length paths from every node to all the dead-ends. The ends that have a higher number of shorter odd-length paths leading to them would have a higher preference on our list. Additionally, we can delete the paths whose nodes have been traversed by \textit{j}.\\\\
+\textbf{Q: }You can't do that. This amounts to brute forcing every single \(run\) which has O(n!) complexity. How do you "lead the traversal" to dead-ends again?\\
+\textbf{A: }Yes. So we cannot compute all paths but we can certainly find all-pairs shortest paths in polynomial time. Aiming for "shortest" paths makes sense as it 1) decreases \textit{j's} chance of deviating to other paths and 2) that is the only path we can compute efficiently (we can parameterize the distance by some k and find all k-length paths but that's also expensive)\\\\
+\textbf{Q: }Though shortest paths can be found efficiently, it does not necessarily mean fewer deviations can be caused by \textit{Player j}. Consider the scenario shown in Figure \ref{fig:dead_end}:\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Precog Tasks Report/dead_end_path.png}
+    \caption{Blue corresponds to Player i and red to Player j}
+    \label{fig:dead_end}
+\end{figure}
+\textbf{A: }Yes though the shortest path reduces the number of nodes, it assumes that all nodes have an equal likelihood of letting j escape which is not true as evident from the example. We can refine our approach as follows: The goal is to find an odd path to the dead-end such that the nodes in the path do not let \textit{player j} escape. This can be accomplished by checking if the even-numbered nodes have outdegree = 1 (no escape) or have a successor that precedes another even-numbered node in the path to force \textit{j} back in the path. This can also be done if there are an odd number of nodes before looping back into the path but that will allow for more degrees of freedom for \textit{Player j} so we limit our evaluation to just 1 node. This is illustrated in Figure \ref{fig:dead_end2}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Precog Tasks Report/dead_end2.png}
+    \caption{Blue corresponds to Player i and red to Player j}
+    \label{fig:dead_end2}
+\end{figure}\\
+\textbf{Q: }How can such paths with minimal deviations and "loop-back" characteristics be found?\\
+\textbf{A: }We can only find an approximation of such paths. We can run \textit{breadth first search} on the reverse graph with dead-end as the root node and check for reachable nodes till some k\textsuperscript{th} level. Then we can examine each node in a particular path for the given characteristics. Accordingly, we select or reject that path and make the choices for a blue node which is in one of our accepted paths.\\\\
+\textbf{Q: }Such an analysis is possible only if k is not comparable to n. Otherwise, it becomes as bad as enumerating over all paths.\\
+\textbf{A: }This is obvious from the BFS tree where k is asymptotically \(log(n)\) as we do not expect the BFS tree for a convoluted graph to be skewed. Further, we can limit k to the length of the \textbf{diameter}.\\\\
+This pre exploratory reasoning leads us to the following:\\
+\textbf{Conclusion: }\textbf{\textcolor{red}{Global}} assessment of paths leading to a terminal is infeasible. We can instead utilize \textbf{\textcolor{Green}{local}}   structures centered around terminals and extend our evaluation of its neighborhood using traversal techniques like the \textit{breadth first search}.
+
+\subsubsection{Terminals that are not dead-ends}
+We now know that we aim to perform a local search around terminals to acquire some knowledge of paths for trapping our opponent. However, for this, we need to know our terminals in the first place!\\
+Dead-ends are easy to find. They are just nodes with no outgoing edges. However, our analysis in section 3.2 also suggests another kind of stopping point - nodes that "loopback" into the traversal like in Figure \ref{fig:loopy_end}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Precog Tasks Report/loop_end.png}
+    \caption{Blue corresponds to Player i and red to Player j}
+    \label{fig:loopy_end}
+\end{figure}\\
+These \textit{loopy ends} cannot be categorized by a single property like dead-ends. The goal for the upcoming sections would be to learn local features and structures (by graph theory) that help us find these terminals and a way to trap the opponent in them.
+
+\subsection{Graph Reduction}
+\textbf{Observation 1:} Nodes that (1) are \textbf{orphans} which means that they have no incoming edges and (2) have only orphans as their predecessors are never traversed unless they are the starting point.\\\\
+\textbf{Observation 2:} All nodes can be reduced to a two-letter representation - $<first letter><last letter>$, for example, India can be written as 'ia'. This follows from the fact that all connections in the graph are only determined by the first and last letters and the 'internal' letters only help in distinguishing nodes with the same start and end letters.\\\\
+Our game of ATLAS starts with \(A\). Thus all orphans not starting with \(A\) along with the type 2 nodes pointed out in observation 1 shall be removed as they are irrelevant.\\
+Let \(G\) be the graph thus obtained. We further reduce \(G\) to \(G'\) as per observation 2. Note that every node of \(G'\) is a \(clique\) in \(G\) if the node is of type \(xx\) or an \(independent\) \(set\) in \(G\) if the node is of type \(xy\) where \(x\) and \(y\) are distinct letters.
+
+\subsubsection{Countries}
+The original graph had 195 nodes and 2033 edges. By our \texttt{scc\_countries.py} program we make the following \textbf{inferences:} \\
+\textbf{(1)} All countries starting with b, f, j, p, v, and z are orphans.\\
+\textbf{(2)} All countries starting with 'h' have only 'bangladesh' as their predecessor which is an orphan.\\
+\textbf{(3)} No orphan starts with 'a'.\\
+\textbf{(4)} Removing all orphans and countries starting with the letter 'h' (list stored in \texttt{countries\_inPlay.txt}) leaves us with a graph that is \textbf{strongly connected}.\\\\
+This reduces the number of nodes in the graph \(G\) to 153.\\
+\textbf{Conclusion:} The reduced graph \(G\) has \textit{no dead-ends}.\\
+\textbf{Justification:} Note that since \(G\) is strongly connected there exists a path from every node \(u\) to every node \(v\). A path cannot originate from a node with out-degree 0. Thus, there are no dead-ends.\\\\
+Now we transform our graph into \(G'\). As noted, \(xx\) in \(G'\) would mean a clique in \(G\), and \(xy\) would mean an independent set. We obtain a graph with 75 nodes and 313 edges, a large reduction from 195 nodes and 2033 edges!\\\\
+\textbf{The clique trap}\\
+We observe that there is only one node \(aa\) in \(G'\) that corresponds to a clique in \(G\). This means that there does not exist any country that starts and ends with the same letter except \(a\). This clique structure can be exploited to develop a deterministic strategy as follows:\\\\
+\textbf{Claim:} Player 1 has a winning guarantee if (s)he starts with a country beginning (and ending) with the letter \(a\) by forcing Player 2 to remain in the clique.\\\\
+\textbf{Proof: }Player 1 starts with a node in the \(aa-clique\). 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Precog Tasks Report/clique_cont.png}
+    \caption{Trapping Player 2 in the AA-clique}
+    \label{fig:loopy_end}
+\end{figure}\\
+Note that since the clique size is odd if the 2 players continue to guess country names belonging to the clique, the last remaining node will be said by player 1. Thus player 2 will have to escape from the clique to the an-independent set to say Afghanistan or Azerbaijan. Note that since the cardinality of the na-independent set is more than that of the an-set, player 1 can force player 2 back into the an-set or the clique. In the former case, player 2 again leads player 1 to the na-set. Having exhausted the an-set, player 2 has no option but to backtrack to the clique (if it's not already exhausted). Note that the number of nodes left in the clique is now even as the last node in it was guessed by player 1. Thus an even length traversal in the remaining clique starting from player 2 exhaust all countries starting with the letter 'a' and player 1 wins the game.                      $\blacksquare$
+\newpage
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategy:} Player 1 ALWAYS wins the game of ATLAS on countries if (s)he starts by guessing the name of a country that both starts and ends with \(a\) by trapping player 2 in the odd-sized aa-clique or the an-independent set.
+    }%
+}
+\subsubsection{Cities}
+\subsubsection{Combined}
+\subsection{Finding terminals}
+In our analysis of paths, we noted that there are 2 kinds of terminals - \textit{dead ends} and nodes that \textit{loopback} into the path. Since \textit{dead ends} do not exist in any of our graphs, we search for the \textit{ loopy ends}. As concluded in our search for paths section, we will try to do a local evaluation of nodes.
+\subsubsection{Countries}
+The \textit{bfs-tree} of the countries graph (without edges) is shown in Figure \ref{fig:bfs_tree_countries}.
+\begin{figure}[h!]
+    \noindent
+    \makebox[\textwidth][c]{\includegraphics[width=0.85\paperwidth]{Precog Tasks Report/bfs_countries.png}}
+    \captionsetup{justification=centering, singlelinecheck=false}
+    \caption{Auxiliary node 'a' added as initialization can happen from either 'aa' or 'an'}
+    \label{fig:bfs_tree_countries}
+\end{figure}\\
+\textbf{Inference:} Any country can be reached in less than 5 turns. Thus, a 3-step local evaluation (node\_level $\pm$ 3) is as bad as traversing the entire tree. We thus limit our evaluation to the immediate neighborhood and nodes at a distance of 2.\\\\
+Now, let us try to characterize the nodes that can show such \textit{loopback} behavior.\\\\
+\textbf{Independent Set and Cycles}\\\\
+Looking at Figure \ref{fig:loopy_end}, we see that such nodes have outgoing edges to their 'ancestors' in a typical traversal. An immediate idea would be to enumerate the nodes based on the number of 'back edges' in the \textit{bfs-tree}. However, this approach doesn't work since we can be at any node in the graph in less than 5 turns, any node can serve as the root of a new \textit{bfs-tree} with 70 nodes. So, the number of back edges for a particular tree is not very insightful. Further and more importantly, it is a property dependent on the path and not relevant to our local analysis.\\
+Instead of directly searching for such probable 'loopy ends' we focus on the 'stopping point' that the loopy end leads to, that is, the node that ends up getting repeated.\\
+If such a node is an independent set (in the original non-reduced graph) of size $>$= 2 then the player has a way to escape. Thus we desire to find nodes that are an independent set of size 1 in the original graph. In other words, letters that have just one country starting with them. Further, such nodes should have a high in-degree to allow many nodes to \(loop\) into them.\\\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Precog Tasks Report/countries_startEnd.png}
+    \caption{Red arrows - Letters that are first letter of just 1 country but last letter of many, Yellow arrows - Letters that are last letter of very few countries but first letter of many}
+    \label{fig:countries_startEnd}
+\end{figure}\textbf{Observation 1: }Only one country starts with \(o\) (oman) and \(y\)(yemen) but many end with those letters.\\\\
+\textbf{Observation 2: }Only one country ends with \(m\) (united kingdom) and \(g\)(luxembourg) and just 2 countries end with \(c\) (dominican republic and central african republic) but many start with those letters.\\\\
+We focus our attention to observation 1 and will return to observation 2 in later sections. \\
+We use our \texttt{cycle\_countries.py} program to find all 3-cycles that \(oman\) is a part of.\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Precog Tasks Report/oman.png}
+    \caption{Looping back in oman}
+    \label{fig:oman}
+\end{figure}\newpage
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategic choice:} If player j lands at do, lo or so then player i can trap player j by forcing it in \(oman\) again (provided j guesses nl, nd or ns).
+    }%
+}\\\\
+We now look at the other country pointed out in observation 1 - \(yemen\).\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Precog Tasks Report/yemen.png}
+    \caption{Looping back in yemen}
+    \label{fig:yemen}
+\end{figure}\\
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategic choice:} If player j lands at yn or nu then player i can trap player j by forcing it in \(yemen\) again (provided j guesses nl, nd or ns).
+    }%
+}\\\\
+\textbf{Limitations: }Though this analysis does provides us with strategic choices for certain scenarios, it is limited to a set of nodes that are likely to be reached. It also assumes that the 'loopy-ends' have not already been traversed.\\\\
+In our next section, we perform reformations that help us get much more comprehensive and deterministic strategies for an extensive set of places.
+
+\subsection{Graph Abstraction}
+Till now we have been looking at the graph purely in terms of its structure - cliques, independent sets, cycles that allow us to loop-back into a particular node that has no options left.\\
+We will add more contextual meaning to our graph now...When does a game of ATLAS decisively ends? Simply put, when all places starting from a particular \textbf{letter} are exhausted and a place ending with that letter appears. Thus instead of finding likely terminal points, we shift our focus to exhausting the set of places starting from a particular \textbf{letter}. In other words, we abstract the details of the interconnection between places by focusing on the letters reachable by a particular letter.\\\\
+\textbf{We perform a transformation of our graph as follows:}
+\begin{enumerate}
+    \item All letters that are either the first letter or the last letter of a place become the nodes of the graph.
+    \item All places \(xy\) become directed edges from the letter \(x\) to letter \(y\).
+    %\item Every node carries a weight equal to the number of places starting from that letter.
+    \item Every edge \(xy\) carries a weight equal to the number of places starting from \(x\) and ending at \(y\).
+\end{enumerate}
+\textbf{Results of transformation: }
+\begin{enumerate}
+    \item Apart from adding contextual meaning to the graph, \(abstraction\) leads to further \(reduction\) in the graph structure. The cardinality of the node set can at most be 26 and that of the edge set equals the cardinality of the node set from the previous reduced graph.
+    \item While playing the game, if player \(i\) goes from \(x\) to \(y\) then the weight of the edge \(xy\) reduces by 1 if it was formerly $>=$ 1. The game ends when a player arrives at a node with no non-zero-weighted outgoing edges.
+\end{enumerate}
+\textbf{Goal: }To trap the opponent we need to select a node with the \(loopback\) characteristic. We of course have the option of counting the number of 2-cycles and 3-cycles, but having already explored this, we motivate our choices using deductions from centrality measures.
+
+\subsubsection{Countries}
+The figures depict the transformed graph for countries with just 17 nodes and 75 edges.\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Precog Tasks Report/letter_country_graph_degCentrality.png}
+    \caption{Transformed graph with node sizes proportional to their degree centrality}
+    \label{fig:cdc}
+\end{figure}\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Precog Tasks Report/letter_country_graph_btwCentrality.png}
+    \caption{Transformed graph with node sizes proportional to their betweenness centrality}
+    \label{fig:cbc}
+\end{figure}\\
+\textbf{Degree Centrality}\\
+Degree centrality was computed for each node:\\
+\begin{equation}
+    C_D(v) = \frac{\text{in-degree}(v) + \text{out-degree}(v)}{N - 1}
+\end{equation}
+\textbf{Betweenness Centrality}\\
+Betweenness centrality highlights critical nodes:
+\begin{equation}
+    C_B(v) = \sum_{s \neq v \neq t} \frac{\sigma_{st}(v)}{\sigma_{st}}
+\end{equation}
+where \(\sigma_{st}\) represents the number of shortest paths from \(s\) to \(t\), and \(\sigma_{st}(v)\) denotes the fraction passing through \(v\).\\
+\textbf{Computational Results: }
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Precog Tasks Report/deg_and_btw_centrality_countries.png}
+    \caption{Computed centrality measures for each node}
+    \label{fig:ccm}
+\end{figure}\\
+\textbf{Interpretation of results: }\\\\
+Degree centrality measures "how well connected" a node is to other nodes in the graph. Betweenness centrality measures "how pivotal" a node is, that is, how well it acts like a bridge.\\
+What we want is a node that is (1) easily reachable and (2) participates in many short cycles.\\\\
+\textbf{Inference: }The \(N-set\), \(D-set\) and the \(I-set\) have both very high betweenness and degree centrality values. This means that they are well connected to other sets in the graph and also control the 'flow' of the game.\\\\
+\textbf{The N-flower trap}\\\\
+Note that the \(N-set\) has degree centrality $>$ 1. This suggests that the sum of its in-degree and out-degree is $>$ N-1 and hence the \(N-set\) has both outgoing edges and incoming edges to and from the same nodes. This combined with the fact that it has a very high betweenness centrality suggests that there are many three and two cycles like \(X-set\) $\rightarrow$ \(N-set\) $\rightarrow$ \(X-set\).\\
+On investigation, we get this flower sub-graph illustrated in figure \ref{fig:nf}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Precog Tasks Report/Nflower.png}
+    \caption{The N-flower}
+    \label{fig:nf}
+\end{figure}\\
+\textbf{Note: }Since the letter A (both aa and an) have been thoroughly explored earlier and a winning strategy has been developed for it, we omit it from our current analysis.
+\newpage
+\textbf{Claim: }\textit{Player i} has a winning guarantee if (s)he lands at the \(N-set\) first by trapping \textit{player j} inside it.\\\\
+\textbf{Proof: }\textit{Player i} arrives at the \(N-set\) first and says 'nd' to transition to the \(D-set\). Now \textit{player j} can go to either O, I, K or the C-set from D. All of these have edges to the N-set thus putting \textit{player j} inside the N-set. Note that the weight of all edges leaving the N-set is 1 and thus no edge can be traversed more than once. Since nd has already been utilized by \textit{player i}, \textit{player j} can escape only to the \(L-set\), \(S-set\), \(U-set\) or the \(Y-set\) but all of these nodes loopback into the N-set by a single transition thus exhausting the N-set with \textit{player j} inside it. $\blacksquare$\\\\
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategy: }Player i ALWAYS wins the game of ATLAS on countries if (s)he is the first one to guess a country starting with the letter N from the A-set (via Afghanistan or Azerbaijan).
+    }%
+}\\\\\\
+\textbf{The D-flower trap}\\\\
+By performing similar inferences from the centrality measures on the D-set we get the following structure in Figure \ref{fig:df}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Precog Tasks Report/Dflowerpng.png}
+    \caption{The D-flower (well, not exactly a flower!)}
+    \label{fig:df}
+\end{figure}\\
+\textbf{Note: }Having analyzed the N-set and the A-set, these letters have been omitted from the current evaluation. We further assume that the player arrives at the D-set by a node in the same level of A-rooted bfs or higher (N-set or S-set as parent).\\\\
+\textbf{Claim: }\textit{Player i} has a winning guarantee if (s)he lands at the \(D-set\) first by trapping \textit{player j} inside it.\\\\
+\textbf{Proof: }\textit{Player i} arrives at the D-set and transitions to the K-set. \textit{Player j} can escape to either the I-set or the T-set. Both of these have edges coming back into the D-set and thus \textit{player j} gets inside the D-set. Now (s)he can escape to either the C-set or the I-set but both loopback into the D-set thus trapping \textit{player j}.     $\blacksquare$ \\
+\newpage
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategy: }Player i ALWAYS wins the game of ATLAS on countries if (s)he is the first one to guess a country starting with the letter D arriving from the N-set or the S-set in a monotonic descent of bfs rooted at the letter A.
+    }%
+}\\(what we mean by monotonic descent is that you start at the letter A and then keep coming down at the lower levels of bfs by not taking a 'backedge' to an upper level)\\\\
+We thus see that how high centrality measures translate to a \(loopback\) characteristic and our motivated to make the following hypothesis:\\\\
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Hypothesis: }For small strongly connected graphs, there exists a positive correlation between the number of short cycles a node participates in and its degree and betweenness centrality values.
+    }%
+}
+
+\subsubsection{Cities}
+
+\subsubsection{Combined}
+
+% ------------------ 4. Game Simulation ------------------ 
+\subsection{A probabilistic approach}
+Till now we have been finding structures in our graph and deriving guaranteed winning strategies. We now attempt a \(greedy\) approach that does not guarantees winning but does provide a competitive edge.
+\subsubsection{Countries}
+We remove the letters A and N from our analysis as deterministic strategies have already been found centered around them and we desire to analyze the remaining structure of the graph.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Precog Tasks Report/letter_country_an.png}
+    \caption{Letter graph with letter A and N removed}
+    \label{fig:noan}
+\end{figure}\\
+We utilize this transformed graph for this purpose.\\\\
+\textbf{Game Simulation Rules: }\begin{enumerate}
+    \item Player 1 starts the game with a country with the letter S, U, L or D (These letters are at the topmost level of bfs after the exclusion of A and N).
+    \item Going from one letter node to another by a non-zero weighted edge is a \(legal\) move.
+    \item Every legal move decreases the edge weight of that move by 1.
+    \item Player 1 makes legal moves as per the greedy approach described below.
+    \item Player 2 makes random but legal moves.
+    \item Game ends in favor of player i when player j arrives at a node with no non-zero weighted outgoing edge from that node.
+\end{enumerate}
+\textbf{The greedy step: }\begin{enumerate}
+    \item Transition to the letter with the total weight of outgoing edges as zero if possible.
+    \item Else transition to the letter with the highest difference in sum of weights of incoming edges and the sum of weights of outgoing edges.
+\end{enumerate}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Precog Tasks Report/flow_countries.png}
+    \caption{Left to right: decreasing priority order}
+    \label{fig:node_diff_countries}
+\end{figure}
+\textbf{Explanation: } If player 1 has successors with no outgoing edge with a non-zero weight then it makes complete sense for player 1 to force player 2 in that dead-end and win the game there and then. Otherwise, player 1 evaluates two parameters of its successors - total weight of incoming edges and the total weight of outgoing edges. The former is desired to be high as it maintains flexibility for player 1 to keep that option safe for him/her for later usage. The latter is desired to be low as it limits the escape options for player 2.
+To assimilate both the factors we compute the total incoming weight - total outgoing weight for every node in the graph and prepare a priority list for player 1 by assigning the highest priority to the node with the highest difference.\\\\
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+        \textbf{Strategy: }Player 1 has a competitive edge over player 2 if (s)he makes greedy transitions at his turn as per the above stated rule.
+    }%
+}\\\\\\
+\textbf{Testing the strategy: }\\\\
+We use our \texttt{test\_countries.py} program to simulate the games as per the stated rules and developed strategy. 
+Table \ref{table:1} summarizes the results of simulation.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c|} 
+ \hline
+ \textbf{Number of games simulated} & \textbf{Player 1 wins} \\ [0.5ex] 
+ \hline
+ 10 & 80\% \\
+ 50 & 64\% \\
+ 100 & 69\% \\
+ 500 & 74.4\% \\
+ 1000 & 75.2\% \\
+ 5000 & 74.48\% \\
+ 10000 & 74.66\% \\
+ 100000 & 75\% \\
+ \hline
+\end{tabular}
+\caption{Simulation results for testing strategy}
+\label{table:1}
+\end{table}
+Since the player 1 win percentage converges around 75\% we conclude that our strategy helps us win three-fourth of the games!
+
+% ------------------ 6. Conclusion ------------------ 
+\section{Conclusion}
+This report detailed the exploration of the ATLAS game using graph theory. Key findings include:
+\begin{itemize}
+    \item Nodes with higher betweenness centrality influence game outcomes significantly.
+    \item Dead-end strategies give a significant advantage to Player 1.
+    \item Graph-based heuristics can optimize gameplay strategies in turn-based decision environments.
+\end{itemize}
+
+% ------------------ References ------------------ 
+\begin{thebibliography}{9}
+\bibitem{newman} M. Newman, \textit{Networks: An Introduction}, Oxford University Press, 2010.
+\bibitem{barabasi} A.-L. Barabási, \textit{Network Science}, Cambridge University Press, 2016.
+\end{thebibliography}
+
+\end{document}
+

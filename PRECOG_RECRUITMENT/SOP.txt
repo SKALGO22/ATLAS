@@ -1,0 +1,25 @@
+Statement of Purpose
+
+I am eager to join Precog at IIIT Hyderabad, a research group renowned for its interdisciplinary approach to AI, machine learning, and computational social science. The lab's emphasis on fundamental research in areas such as machine learning, graph explainability, robustnesss
+and interpretability aligns perfectly with my academic interests and career aspirations.
+
+Why I Want to Work with Precog?
+
+Precog's commitment to advancing foundational aspects of AI and machine learning is particularly appealing to me. Projects like Machine Unlearning, which explores methods to selectively remove information from trained models, and Graph Explainability, aimed at enhancing the interpretability of graph neural networks, exemplify the lab's dedication to pioneering research. The AI & Math project that shows how symbolic AI can be leveraged
+to rival silver medalists at IMO and outperform DeepMind's AlphaGeometry on certain problems really fascinated me and is a testimony of the 
+exceptional research potential this group has. All this instills an enthusiasm in me to work on these topics and with these people (and PK sir!).
+Engaging with such cutting-edge work would provide me with the opportunity to contribute to the development of AI technologies that are both robust and ethically sound.
+
+Why I Am the Best Candidate?
+
+As a Computer Science sophomore at IIIT Hyderabad, I have developed a solid foundation in machine learning, graph theory, and mathematics through rigorous coursework and hands-on projects. My enthusiasm for these subjects has driven me to delve deeper into their theoretical underpinnings and practical applications. For instance, in IIITD (yes, I'm lateral entry), I completed a project on Multi-Modal Sentiment Analysis, where I compared different data processing approaches, ML models and early vs late fusion techniques. My strong analytical skills, combined with a proactive approach to problem-solving, would enable me to tackle complex research challenges effectively. I am confident that my academic background and passion for AI research make me a suitable candidate to contribute meaningfully to Precog's endeavors.
+Apart from interest, skills and abilities, I have a burning desire to prove myself. Right from high school days, whether it was JEE or olympiads,
+I believe, due to a variety of factors, I have performed lesser than my true potential. Getting into IIITH has re-ignited a flame in me which motivates
+me to walk uphill with full energy and uncompromised commitment.
+
+How I Will Benefit from Working with Precog?
+
+Collaborating with Precog will be instrumental in honing my research skills and deepening my understanding of fundamental AI concepts. Working alongside esteemed researchers on projects like Machine Learning, Graph Explainability and Interpretability will expose me to innovative methodologies and critical perspectives in the field. This experience will not only enhance my technical expertise but also prepare me to address complex challenges in AI, fostering a career dedicated to advancing the frontiers of machine learning and its applications. And ofcourse it also helps in solving more
+mundane issues like...getting a dual degree!
+
+I am confident that my passion for machine learning, graphs, and mathematics, coupled with my commitment to research excellence, aligns well with Precog's mission. I look forward to the possibility of contributing to and growing with your esteemed research group.

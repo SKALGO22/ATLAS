@@ -1,0 +1,153 @@
+afghanistan
+albania
+algeria
+andorra
+angola
+antigua and barbuda
+argentina
+armenia
+australia
+austria
+azerbaijan
+cambodia
+cameroon
+canada
+cape verde
+central african republic
+chad
+chile
+china
+colombia
+comoros
+congo
+costa rica
+croatia
+cuba
+cyprus
+czechia
+denmark
+djibouti
+dominica
+dominican republic
+dr congo
+east timor
+ecuador
+egypt
+el salvador
+equatorial guinea
+eritrea
+estonia
+eswatini
+ethiopia
+gabon
+gambia
+georgia
+germany
+ghana
+greece
+grenada
+guatemala
+guinea
+guinea-bissau
+guyana
+iceland
+india
+indonesia
+iran
+iraq
+ireland
+israel
+italy
+ivory coast
+kazakhstan
+kenya
+kiribati
+kuwait
+kyrgyzstan
+laos
+latvia
+lebanon
+lesotho
+liberia
+libya
+liechtenstein
+lithuania
+luxembourg
+madagascar
+malawi
+malaysia
+maldives
+mali
+malta
+marshall islands
+mauritania
+mauritius
+mexico
+micronesia
+moldova
+monaco
+mongolia
+montenegro
+morocco
+mozambique
+myanmar
+namibia
+nauru
+nepal
+netherlands
+new zealand
+nicaragua
+niger
+nigeria
+north korea
+north macedonia
+norway
+oman
+qatar
+romania
+russia
+rwanda
+saint kitts and nevis
+saint lucia
+saint vincent and the grenadines
+samoa
+san marino
+saudi arabia
+senegal
+serbia
+seychelles
+sierra leone
+singapore
+slovakia
+slovenia
+solomon islands
+somalia
+south africa
+south korea
+south sudan
+spain
+sri lanka
+sudan
+suriname
+sweden
+switzerland
+syria
+são tomé and príncipe
+tajikistan
+tanzania
+thailand
+togo
+tonga
+trinidad and tobago
+tunisia
+turkey
+turkmenistan
+tuvalu
+uganda
+ukraine
+united arab emirates
+united kingdom
+united states
+uruguay
+uzbekistan
+yemen
